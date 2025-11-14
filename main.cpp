@@ -288,7 +288,7 @@ void UpdateGame(float delta_time) {
             missile->Update(delta_time);
             for (auto asteroid : g_asteroids) {
                 if (asteroid->visible && !asteroid->hit) {
-                    if (asteroid->CheckMissileIntersection(missile->position, 0.5f)) {
+                    if (asteroid->CheckRayIntersection(missile->GetRayStart(), missile->GetRayDirection())) {
                         asteroid->hit = true;
                         asteroid->visible = false;
                         missile->active = false;

@@ -14,6 +14,8 @@ public:
     Missile();
     void Fire(glm::vec3 start_pos, glm::quat start_orientation);
     void Update(float delta_time) override;
+    glm::vec3 GetRayStart();
+    glm::vec3 GetRayDirection();
 };
 
 #endif // MISSILE_H

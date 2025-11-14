@@ -39,3 +39,11 @@ void Missile::Update(float delta_time) {
 
     SceneNode::Update(delta_time);
 }
+glm::vec3 Missile::GetRayStart() {
+    return position;
+}
+
+glm::vec3 Missile::GetRayDirection() {
+    glm::mat4 orientation_mat = glm::mat4_cast(orientation);
+    return glm::normalize(glm::vec3(orientation_mat * glm::vec4(0.0f, 0.0f, -1.0f, 0.0f)));
+}
