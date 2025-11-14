@@ -4,6 +4,8 @@ A 3D space survival game where players pilot a spaceship through an asteroid fie
 
 *Developed for COSC3406 - Advanced Game Design and Development*
 
+![Asteroid Patrol Gameplay](screenshots/gameplay.png)
+
 ## Features Implemented
 
 ### Core Mechanics (100%)
