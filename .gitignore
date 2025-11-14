@@ -1,0 +1,57 @@
+# Build directories
+bin/
+out/
+build/
+cmake-build-*/
+
+# Object files
+*.o
+*.obj
+
+# Executables
+*.exe
+*.out
+*.app
+
+# Debug files
+*.ilk
+*.pdb
+*.dSYM/
+*.su
+
+# Visual Studio / VS Code
+.vs/
+.vscode/
+*.sln
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+*.cmake
+!CMakeLists.txt
+
+# Backup files
+*_backup.*
+*.bak
+*~
+
+# OS specific
+.DS_Store
+Thumbs.db
+nul
+
+# IDE specific
+*.user
+*.suo
+*.sdf
+*.opensdf
+*.VC.db
+*.VC.opendb
+
+# CMake settings (optional - remove this line if you want to share VS settings)
+CMakeSettings.json
