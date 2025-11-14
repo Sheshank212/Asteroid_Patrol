@@ -12,7 +12,7 @@ A 3D space survival game where players pilot a spaceship through an asteroid fie
 - ✅ **Physics-based ship controls** with smooth acceleration and deceleration
 - ✅ **Dual camera system** (first-person and third-person) with toggle switching
 - ✅ **Laser weapon system** with ray-sphere collision detection
-- ✅ **Missile weapon system** with sphere-sphere collision detection
+- ✅ **Missile weapon system** with ray-sphere collision detection
 - ✅ **Scene graph hierarchy** with parent-child transformations
 - ✅ **Particle explosion effects** with shader-based rendering (500 particles per explosion)
 - ✅ **Professional code organization** with multiple source files
@@ -137,7 +137,7 @@ The game uses a hierarchical scene graph where each object (ship, asteroids, wea
 
 ### Collision Detection
 - **Laser-Asteroid:** Ray-sphere intersection using mathematical formula
-- **Missile-Asteroid:** Sphere-sphere intersection using distance comparison
+- **Missile-Asteroid:** Ray-sphere intersection using mathematical formula
 - **Reference:** Real-Time Rendering textbook
 
 ### Physics System
