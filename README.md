@@ -6,7 +6,7 @@ A 3D space survival game where players pilot a spaceship through an asteroid fie
 
 ![Asteroid Patrol Menu](screenshots/Screenshot%202025-11-19%20023206.png)
 
-![Asteroid Patrol Gameplay](screenshots/gameplay.png)
+![Asteroid Patrol In-Game HUD](screenshots/Screenshot%202025-11-19%20024044.png)
 
 ## Features Implemented
 
