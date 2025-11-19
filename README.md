@@ -4,6 +4,8 @@ A 3D space survival game where players pilot a spaceship through an asteroid fie
 
 *Developed for COSC3406 - Advanced Game Design and Development*
 
+![Asteroid Patrol Menu](screenshots/Screenshot%202025-11-19%20023206.png)
+
 ![Asteroid Patrol Gameplay](screenshots/gameplay.png)
 
 ## Features Implemented
@@ -17,6 +19,13 @@ A 3D space survival game where players pilot a spaceship through an asteroid fie
 - ✅ **Particle explosion effects** with shader-based rendering (500 particles per explosion)
 - ✅ **Professional code organization** with multiple source files
 
+### UI System (100%)
+- ✅ **Main menu** with Play Game, Instructions, Settings, High Scores, Quit buttons
+- ✅ **Text rendering** with bitmap font system
+- ✅ **Enhanced HUD** displaying health bar, score, wave info, ammo, and game timer
+- ✅ **Interactive buttons** with hover and click states
+- ✅ **Menu navigation** with ESC key support
+
 ### Controls
 - **W/S** - Forward/Backward movement
 - **A/D** - Left/Right strafe
@@ -24,6 +33,8 @@ A 3D space survival game where players pilot a spaceship through an asteroid fie
 - **SPACE** - Fire laser
 - **M** - Fire missile
 - **C** - Toggle camera view (first-person/third-person)
+- **P** - Pause game
+- **ESC** - Return to previous menu
 - **Q** - Quit
 
 ## Project Structure
@@ -42,7 +53,12 @@ AsteroidPatrol_Clean/
 │   ├── particle_system.h # Particle explosion effects
 │   ├── game_state.h     # Game state management
 │   ├── hud.h            # HUD and menu system
-│   └── starfield.h      # Background starfield
+│   ├── starfield.h      # Background starfield
+│   └── ui/              # UI system headers
+│       ├── button.h
+│       ├── enhanced_hud.h
+│       ├── menu_manager.h
+│       └── text_renderer.h
 ├── src/                  # Implementation files
 │   ├── scene_node.cpp
 │   ├── ship.cpp
@@ -54,12 +70,20 @@ AsteroidPatrol_Clean/
 │   ├── particle_system.cpp
 │   ├── game_state.cpp
 │   ├── hud.cpp
-│   └── starfield.cpp
+│   ├── starfield.cpp
+│   └── ui/              # UI system implementation
+│       ├── button.cpp
+│       ├── enhanced_hud.cpp
+│       ├── menu_manager.cpp
+│       └── text_renderer.cpp
+├── assets/shaders/       # UI shader files
+│   ├── text_vs.glsl
+│   └── text_fs.glsl
 ├── shaders/              # GLSL shader files
 │   ├── particle_vp.glsl # Particle vertex shader
 │   ├── particle_gp.glsl # Particle geometry shader
 │   └── particle_fp.glsl # Particle fragment shader
-├── main.cpp              # Main game loop (575 lines)
+├── main.cpp              # Main game loop
 ├── CMakeLists.txt        # CMake configuration
 ├── BUILD.bat             # Build script for Visual Studio
 └── README.md             # This file
@@ -107,11 +131,11 @@ cmake --build .
 The project follows a professional multi-file structure for maintainability and scalability.
 
 ### File Count:
-- 12 header files (.h)
-- 11 implementation files (.cpp)
-- 3 shader files (.glsl)
+- 16 header files (.h)
+- 15 implementation files (.cpp)
+- 5 shader files (.glsl)
 - 1 main file (main.cpp)
-- **Total: 27 source files**
+- **Total: 37 source files**
 
 ### Benefits:
 - Easy to navigate and maintain
