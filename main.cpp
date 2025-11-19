@@ -27,10 +27,14 @@
 #include <algorithm>
 #include <fstream>
 #include <sstream>
+#ifndef GLEW_STATIC
 #define GLEW_STATIC
+#endif
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+#ifndef GLM_FORCE_RADIANS
 #define GLM_FORCE_RADIANS
+#endif
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
 #include <glm/gtc/quaternion.hpp>
@@ -51,6 +55,12 @@
 #include "starfield.h"
 #include "particle_system.h"
 
+// UI System
+#include "ui/text_renderer.h"
+#include "ui/button.h"
+#include "ui/menu_manager.h"
+#include "ui/enhanced_hud.h"
+
 // Window settings
 const std::string window_title_g = "Asteroid Patrol - Final Project";
 const unsigned int window_width_g = 1280;
@@ -58,9 +68,9 @@ const unsigned int window_height_g = 720;
 const glm::vec3 viewport_background_color_g(0.0, 0.0, 0.05);
 
 // Camera settings
-float camera_near_clip_distance_g = 0.1;
-float camera_far_clip_distance_g = 1000.0;
-float camera_fov_g = 60.0;
+float camera_near_clip_distance_g = 0.1f;
+float camera_far_clip_distance_g = 1000.0f;
+float camera_fov_g = 60.0f;
 
 // Shaders
 const char *source_vp = "#version 130\n\
@@ -128,6 +138,14 @@ HUD* g_hud = nullptr;
 Starfield* g_starfield = nullptr;
 ParticleSystem* g_particle_system = nullptr;
 
+// UI System
+MenuManager* g_menu_manager = nullptr;
+EnhancedHUD* g_enhanced_hud = nullptr;
+
+// Mouse state
+double g_mouse_x = 0.0;
+double g_mouse_y = 0.0;
+
 // Forward declaration
 void InitializeScene();
 
@@ -140,6 +158,25 @@ std::string LoadShaderFile(const std::string& filepath) {
     std::stringstream buffer;
     buffer << file.rdbuf();
     return buffer.str();
+}
+
+// Mouse position callback
+void CursorPosCallback(GLFWwindow* window, double xpos, double ypos) {
+    g_mouse_x = xpos;
+    g_mouse_y = window_height_g - ypos; // Flip Y coordinate for OpenGL
+
+    if (g_menu_manager) {
+        g_menu_manager->Update(g_mouse_x, g_mouse_y);
+    }
+}
+
+// Mouse button callback
+void MouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
+    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
+        if (g_menu_manager) {
+            g_menu_manager->HandleClick(g_mouse_x, g_mouse_y);
+        }
+    }
 }
 
 // Input handling
@@ -163,12 +200,37 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
         return;
     }
 
+    // Escape key to pause or return to menu
+    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
+        if (g_game_manager->current_state == GameState::PLAYING) {
+            g_game_manager->PauseGame();
+            if (g_menu_manager) {
+                g_menu_manager->SetCurrentMenu(MenuState::PAUSED);
+            }
+        } else if (g_menu_manager) {
+            // Handle ESC in sub-menus - go back to main menu
+            MenuState current = g_menu_manager->GetCurrentMenu();
+            if (current == MenuState::INSTRUCTIONS ||
+                current == MenuState::SETTINGS ||
+                current == MenuState::HIGH_SCORES) {
+                g_menu_manager->SetCurrentMenu(MenuState::MAIN_MENU);
+            }
+        }
+        return;
+    }
+
     // Pause/resume
     if (key == GLFW_KEY_P && action == GLFW_PRESS) {
         if (g_game_manager->current_state == GameState::PLAYING) {
             g_game_manager->PauseGame();
+            if (g_menu_manager) {
+                g_menu_manager->SetCurrentMenu(MenuState::PAUSED);
+            }
         } else if (g_game_manager->current_state == GameState::PAUSED) {
             g_game_manager->ResumeGame();
+            if (g_menu_manager) {
+                g_menu_manager->SetCurrentMenu(MenuState::NONE);
+            }
         }
         return;
     }
@@ -557,9 +619,49 @@ int main(void) {
         // Set callbacks
         glfwSetKeyCallback(window, KeyCallback);
         glfwSetFramebufferSizeCallback(window, ResizeCallback);
+        glfwSetCursorPosCallback(window, CursorPosCallback);
+        glfwSetMouseButtonCallback(window, MouseButtonCallback);
 
         // Initialize scene
         InitializeScene();
+
+        // Initialize Menu System
+        g_menu_manager = new MenuManager(window_width_g, window_height_g);
+        if (!g_menu_manager->Initialize()) {
+            std::cerr << "Failed to initialize menu system" << std::endl;
+        }
+
+        // Set up menu callbacks
+        g_menu_manager->SetStartGameCallback([&]() {
+            g_game_manager->StartGame();
+            g_menu_manager->SetCurrentMenu(MenuState::NONE);
+        });
+
+        g_menu_manager->SetQuitGameCallback([&window]() {
+            glfwSetWindowShouldClose(window, true);
+        });
+
+        g_menu_manager->SetResumeGameCallback([&]() {
+            g_game_manager->ResumeGame();
+            g_menu_manager->SetCurrentMenu(MenuState::NONE);
+        });
+
+        g_menu_manager->SetRestartGameCallback([&]() {
+            g_asteroids.clear();
+            delete g_root;
+            InitializeScene();
+            g_game_manager->StartGame();
+            g_menu_manager->SetCurrentMenu(MenuState::NONE);
+        });
+
+        // Set initial menu state
+        g_menu_manager->SetCurrentMenu(MenuState::MAIN_MENU);
+
+        // Initialize Enhanced HUD
+        g_enhanced_hud = new EnhancedHUD(window_width_g, window_height_g);
+        if (!g_enhanced_hud->Initialize(g_menu_manager->GetTextRenderer())) {
+            std::cerr << "Failed to initialize enhanced HUD" << std::endl;
+        }
 
         // Initialize particle system with particle shader
         g_particle_system->Initialize(g_particle_program);
@@ -606,7 +708,12 @@ int main(void) {
             // Render starfield first
             g_starfield->Render(g_program);
 
-            g_ship->visible = !g_camera->is_first_person;
+            // Hide ship during menu, otherwise show based on camera mode
+            if (g_game_manager->current_state == GameState::MENU) {
+                g_ship->visible = false;
+            } else {
+                g_ship->visible = !g_camera->is_first_person;
+            }
 
             // Render scene
             g_root->Draw(g_program);
@@ -617,19 +724,35 @@ int main(void) {
             // Handle different game states
             switch (g_game_manager->current_state) {
                 case GameState::MENU:
+                    if (g_menu_manager && g_menu_manager->GetCurrentMenu() != MenuState::NONE) {
+                        g_menu_manager->Render();
+                    }
                     break;
                 case GameState::PLAYING:
-                    g_hud->RenderHUD(g_game_manager);
+                    if (g_enhanced_hud) {
+                        g_enhanced_hud->UpdatePopups(delta_time);
+                        g_enhanced_hud->SetHealth(g_game_manager->health);
+                        g_enhanced_hud->SetMaxHealth(g_game_manager->max_health);
+                        g_enhanced_hud->SetScore(g_game_manager->score);
+                        g_enhanced_hud->SetWave(1);  // Clean version doesn't have wave system
+                        g_enhanced_hud->SetGameTime(g_game_manager->game_time);
+                        g_enhanced_hud->Render();
+                    }
                     break;
                 case GameState::PAUSED:
-                    g_hud->RenderHUD(g_game_manager);
+                    if (g_enhanced_hud) {
+                        g_enhanced_hud->Render();
+                    }
+                    if (g_menu_manager) {
+                        g_menu_manager->Render();
+                    }
                     break;
                 case GameState::GAME_OVER:
                     {
-                        static bool game_over_shown = false;
-                        if (!game_over_shown) {
-                            g_hud->RenderGameOver(g_game_manager->score);
-                            game_over_shown = true;
+                        if (g_menu_manager) {
+                            g_menu_manager->SetGameOverScore(g_game_manager->score, 1);
+                            g_menu_manager->SetCurrentMenu(MenuState::GAME_OVER);
+                            g_menu_manager->Render();
                         }
                     }
                     break;
@@ -645,6 +768,8 @@ int main(void) {
         delete g_hud;
         delete g_starfield;
         delete g_particle_system;
+        delete g_menu_manager;
+        delete g_enhanced_hud;
 
         // Cleanup shader programs
         if (g_program != 0) {

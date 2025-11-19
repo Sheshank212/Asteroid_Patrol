@@ -33,7 +33,12 @@ glm::mat4 SceneNode::GetWorldTransform() {
 
 // Draw this node and all children recursively
 void SceneNode::Draw(GLuint program) {
-    if (visible && model) {
+    // Skip this node and all children if not visible
+    if (!visible) {
+        return;
+    }
+
+    if (model) {
         glm::mat4 world_transform = GetWorldTransform();
 
         // Set world matrix

@@ -31,6 +31,7 @@ find_package(OpenGL REQUIRED)
 file(GLOB SOURCES
     ${PROJECT_SOURCE_DIR}/main.cpp
     ${PROJECT_SOURCE_DIR}/src/*.cpp
+    ${PROJECT_SOURCE_DIR}/src/ui/*.cpp
 )
 
 # Create executable
@@ -73,6 +74,14 @@ add_custom_command(TARGET AsteroidPatrol POST_BUILD
         ${PROJECT_SOURCE_DIR}/shaders
         ${PROJECT_SOURCE_DIR}/bin/shaders
     COMMENT "Copying shader files to bin directory..."
+)
+
+# Copy assets/shaders (text rendering shaders) to bin directory
+add_custom_command(TARGET AsteroidPatrol POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${PROJECT_SOURCE_DIR}/assets/shaders
+        ${PROJECT_SOURCE_DIR}/bin/shaders
+    COMMENT "Copying UI shader files to bin directory..."
 )
 
 # Print configuration info
